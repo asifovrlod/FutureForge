@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<head>
+    <title>Voice Form Filler</title>
+    <style>
+        body {
+            width: 300px;
+            padding: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        #startButton {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #startButton:hover {
+            background-color: #0056b3;
+        }
+
+        #status {
+            margin-top: 10px;
+            padding: 10px;
+            text-align: center;
+            color: #666;
+        }
+
+        #logContainer {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+        }
+
+        .log-entry {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+
+        .log-entry:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="startButton">Start Voice Input</button>
+    <div id="status">Click button to start</div>
+    <div id="logContainer"></div>
+    <script src="popup.js"></script>
+</body>
+
+</html>

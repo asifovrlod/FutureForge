@@ -1,0 +1,53 @@
+{
+    "manifest_version": 3,
+    "name": "Voice Form Filler",
+    "version": "1.0",
+    "description": "Fill forms using voice commands with confirmation",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "images/icon16.png",
+            "48": "images/icon48.png",
+            "128": "images/icon128.png"
+        }
+    },
+    "icons": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://cdnjs.cloudflare.com;",
+        "sandbox": "sandbox allow-scripts; script-src 'self'"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "icons/*",
+                "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css",
+                "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/*"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}
