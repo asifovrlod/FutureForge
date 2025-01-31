@@ -136,11 +136,12 @@ const styles = `
         position: relative;
     }
 
-    .form-group:hover .voice-mic-button,
-    .form-group:focus-within .voice-mic-button {
+    *:has(> input, > textarea):hover .voice-mic-button,
+    *:has(> input, > textarea):focus-within .voice-mic-button {
         opacity: 1;
         pointer-events: auto;
     }
+        
 `;
 
 // Inject styles
@@ -314,7 +315,7 @@ function startVoiceForCurrentField() {
         showIndicator('Voice input completed! ✨', false);
         setTimeout(() => removeIndicator(), 2000);
         resetInterface();
-        
+
 
     }
 }
@@ -434,7 +435,7 @@ async function requestMicrophonePermission() {
 
 function addMicIconToInput(input) {
     // Find the parent form-group
-    const formGroup = input.closest('.form-group');
+    const formGroup = input.closest('div');
     if (!formGroup || formGroup.querySelector('.voice-mic-button')) {
         return;
     }
@@ -465,6 +466,7 @@ function addMicIconToInput(input) {
 
         micButton.style.top = `${topOffset}px`;
         micButton.style.transform = 'translateY(-50%)';
+
     }
 
     // Add click handler
