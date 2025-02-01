@@ -349,6 +349,8 @@ function showIndicator(message, isError = false) {
     document.body.appendChild(indicator);
 
     if (isError) {
+        recognition.stop();
+        resetInterface();
         setTimeout(removeIndicator, 3000);
     }
 }
