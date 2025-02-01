@@ -158,6 +158,42 @@ let microphonePermissionGranted = true;
 let hasInitialized = false;
 let hasCheckedPermission = false; // Added this line
 
+// =============== content.js modifications ===============
+// Add at the top with other variables // WARNING: Never expose this in production
+
+// Add AI processing function
+async function processWithAI(text) {
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer your-uri`
+            },
+            body: JSON.stringify({
+                model: "gpt-4",
+                messages: [{
+                    role: "system",
+                    content: "Correct and format this voice input for web forms. Fix typos, format emails, phones, and dates. Keep it concise. Respond ONLY with the corrected text."
+                }, {
+                    role: "user",
+                    content: text
+                }],
+                temperature: 0.2,
+                max_tokens: 100
+            })
+        });
+
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+    } catch (error) {
+        console.error('AI Processing Error:', error);
+        return text; // Fallback to original input
+    }
+}
+
 function initializeSpeechRecognition() {
     if (recognition) {
         return recognition;
@@ -181,31 +217,30 @@ function initializeSpeechRecognition() {
         }
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = async (event) => {
         const transcript = event.results[0][0].transcript;
-        if (currentInput) {
-            currentInput.value = transcript.replace(/\bat the rate\b/g, "@").replace(/\s*@\s*/g, "@");
-            currentInput.dispatchEvent(new Event('input', { bubbles: true }));
+    if (currentInput) {
+        let processedText = await processWithAI(transcript);
+        processedText = processedText.replace(/\bat the rate\b/g, "@").replace(/\s*@\s*/g, "@");
+        
+        currentInput.value = processedText;
+        currentInput.dispatchEvent(new Event('input', { bubbles: true }));
 
-            // Save to storage
-            chrome.storage.local.get(['voiceLogs'], function (result) {
-                const logs = result.voiceLogs || [];
-                logs.push({
-                    timestamp: new Date().toLocaleString(),
-                    text: transcript,
-                    field: currentInput.name || currentInput.id || 'unnamed field'
-                });
-
-                console.log(logs);
-                if (logs.length > 50) logs.shift();
-                chrome.storage.local.set({ voiceLogs: logs });
+        // Update storage logging
+        chrome.storage.local.get(['voiceLogs'], function (result) {
+            const logs = result.voiceLogs || [];
+            logs.push({
+                timestamp: new Date().toLocaleString(),
+                original: transcript,
+                processed: processedText,
+                field: currentInput.name || currentInput.id || 'unnamed field'
             });
+            if (logs.length > 50) logs.shift();
+            chrome.storage.local.set({ voiceLogs: logs });
+        });
 
-            // Move to next field automatically
-            setTimeout(() => {
-                moveToNextField();
-            }, 500);
-        }
+        setTimeout(() => moveToNextField(), 500);
+    }
     };
 
     recognition.onerror = (event) => {
@@ -349,8 +384,6 @@ function showIndicator(message, isError = false) {
     document.body.appendChild(indicator);
 
     if (isError) {
-        recognition.stop();
-        resetInterface();
         setTimeout(removeIndicator, 3000);
     }
 }

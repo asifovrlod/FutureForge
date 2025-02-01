@@ -5,77 +5,61 @@ const MAX_LOG_ENTRIES = 50; // Maximum number of log entries to keep
 let isListening = false;
 
 // Add state variable at the top
-let isExtensionEnabled = false;
-
-// Initialize and handle toggle state
-const toggleExtension = document.getElementById('toggleExtension');
-
-// Load initial state
-chrome.storage.local.get('isEnabled', ({ isEnabled = false }) => {
-    toggleExtension.checked = isEnabled;
-    updateUIState(isEnabled);
-});
-
-// Handle toggle changes
-toggleExtension.addEventListener('change', ({ target }) => {
-    const isEnabled = target.checked;
-    chrome.storage.local.set({ isEnabled });
-    updateUIState(isEnabled);
-});
+let isExtensionEnabled = true;
 
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function () {
     // Load extension state
-    // chrome.storage.local.get(['isEnabled'], function (result) {
-    //     isExtensionEnabled = result.isEnabled !== undefined ? result.isEnabled : true;
-    //     updateUIState();
-    // });
+    chrome.storage.local.get(['isEnabled'], function (result) {
+        isExtensionEnabled = result.isEnabled !== undefined ? result.isEnabled : true;
+        updateUIState();
+    });
 
     // Load logs when popup opens
     loadLogs();
 
     // Add click listener for the start button
-    // const startButton = document.getElementById('startButton');
-    // const statusDiv = document.getElementById('status');
-    // const logContainer = document.getElementById('logContainer');
+    const startButton = document.getElementById('startButton');
+    const statusDiv = document.getElementById('status');
+    const logContainer = document.getElementById('logContainer');
 
     // Add toggle functionality
-    // startButton.addEventListener('click', async () => {
-    //     if (!isExtensionEnabled) {
-    //         return; // Don't do anything if extension is disabled
-    //     }
+    startButton.addEventListener('click', async () => {
+        if (!isExtensionEnabled) {
+            return; // Don't do anything if extension is disabled
+        }
 
-    //     try {
-    //         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    //         // Update button state
-    //         if (!isListening) {
-    //             startButton.textContent = 'Stop Listening';
-    //             statusDiv.textContent = 'Listening...';
-    //             isListening = true;
-    //         } else {
-    //             startButton.textContent = 'Start Voice Input';
-    //             statusDiv.textContent = 'Stopped';
-    //             isListening = false;
-    //         }
+            // Update button state
+            if (!isListening) {
+                startButton.textContent = 'Stop Listening';
+                statusDiv.textContent = 'Listening...';
+                isListening = true;
+            } else {
+                startButton.textContent = 'Start Voice Input';
+                statusDiv.textContent = 'Stopped';
+                isListening = false;
+            }
 
-    //         // Execute speech recognition and pass callback
-    //         await chrome.scripting.executeScript({
-    //             target: { tabId: tab.id },
-    //             function: startSpeechRecognition,
-    //         });
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //         statusDiv.textContent = 'Error: ' + error.message;
-    //     }
-    // });
+            // Execute speech recognition and pass callback
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                function: startSpeechRecognition,
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            statusDiv.textContent = 'Error: ' + error.message;
+        }
+    });
 
     // Add click listener for extension icon (browser action)
-    // chrome.action.onClicked.addListener(() => {
-    //     isExtensionEnabled = !isExtensionEnabled;
-    //     chrome.storage.local.set({ isEnabled: isExtensionEnabled });
-    //     updateUIState();
-    // });
+    chrome.action.onClicked.addListener(() => {
+        isExtensionEnabled = !isExtensionEnabled;
+        chrome.storage.local.set({ isEnabled: isExtensionEnabled });
+        updateUIState();
+    });
 });
 
 // Function to add log entry
@@ -106,35 +90,38 @@ function addLogEntry(command, success = true) {
 function displayLogs(logs) {
     const logContainer = document.getElementById('logContainer');
     logContainer.innerHTML = '';
-
+    
     logs.forEach(log => {
         const logElement = document.createElement('div');
         logElement.className = 'log-entry';
         logElement.innerHTML = `
-      <span class="timestamp">${log.timestamp}</span><br>
-      <strong>Command:</strong> ${log.command}<br>
-      <strong>Status:</strong> ${log.success ? '✅ Success' : '❌ Failed'}
-    `;
+            <div class="log-header">
+                <span class="timestamp">${log.timestamp}</span>
+                <span class="field">${log.field}</span>
+            </div>
+            <div class="original-text">Original: "${log.original}"</div>
+            <div class="processed-text">Processed: "${log.processed}"</div>
+        `;
         logContainer.appendChild(logElement);
     });
 }
 
 // Function to load logs
 function loadLogs() {
-    // chrome.storage.local.get(['voiceLogs'], function (result) {
-    //     const logs = result.voiceLogs || [];
-    //     logContainer.innerHTML = ''; // Clear existing logs
+    chrome.storage.local.get(['voiceLogs'], function (result) {
+        const logs = result.voiceLogs || [];
+        logContainer.innerHTML = ''; // Clear existing logs
 
-    //     logs.reverse().forEach(log => {
-    //         const logEntry = document.createElement('div');
-    //         logEntry.className = 'log-entry';
-    //         logEntry.innerHTML = `
-    //             <strong>${log.timestamp}</strong><br>
-    //             Text: "${log.text}"
-    //         `;
-    //         logContainer.appendChild(logEntry);
-    //     });
-    // });
+        logs.reverse().forEach(log => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <strong>${log.timestamp}</strong><br>
+                Text: "${log.text}"
+            `;
+            logContainer.appendChild(logEntry);
+        });
+    });
 }
 
 // Function to save a new log
@@ -200,7 +187,8 @@ function startSpeechRecognition() {
     recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         showFeedback('❌ Error: ' + event.error, true);
-    };
+        addLogEntry(`Recognition Error: ${event.error}`, false);
+    }
 
     recognition.onend = () => {
         console.log('Speech recognition ended');
@@ -239,7 +227,7 @@ function startSpeechRecognition() {
 
 // Modified fillForm function to return success/failure
 function fillForm(transcript) {
-    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="number"], textarea');
+    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea');
 
     const commands = transcript.split(' fill ');
     if (commands.length === 2) {
@@ -260,13 +248,20 @@ function fillForm(transcript) {
     return false; // No matching field found
 }
 
-// Update UI based on state
-function updateUIState(isEnabled) {
-    chrome.action.setIcon({ 
-        path: isEnabled ? 'images/recording.png' : 'images/mic.png' 
-    });
-}
+// Add new function to update UI based on extension state
+function updateUIState() {
+    const startButton = document.getElementById('startButton');
+    const statusDiv = document.getElementById('status');
 
-
-
-
+    if (isExtensionEnabled) {
+        startButton.disabled = false;
+        chrome.action.setIcon({ path: 'icon.png' }); // Use your enabled icon
+        statusDiv.textContent = 'Extension enabled';
+    } else {
+        startButton.disabled = true;
+        isListening = false;
+        startButton.textContent = 'Start Voice Input';
+        chrome.action.setIcon({ path: 'icon-disabled.png' }); // Use your disabled icon
+        statusDiv.textContent = 'Extension disabled';
+    }
+} 
