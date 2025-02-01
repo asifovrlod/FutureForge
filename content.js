@@ -434,14 +434,16 @@ async function requestMicrophonePermission() {
 }
 
 function addMicIconToInput(input) {
-    // Find the parent form-group
-    const formGroup = input.closest('div');
+    // Try to find any parent element that could be a form group or container
+    const formGroup = input.closest('div, form, fieldset, .form-group, .input-group, p, label, span, div');
+
     if (!formGroup || formGroup.querySelector('.voice-mic-button')) {
         return;
     }
 
     // Create mic button
     const micButton = document.createElement('div');
+
     micButton.className = 'voice-mic-button';
     micButton.innerHTML = '<i class="fas fa-microphone"></i>';
     micButton.title = 'Click to input by voice';
@@ -459,13 +461,14 @@ function addMicIconToInput(input) {
             const inputTop = inputRect.top - formGroupRect.top;
             // Position mic button at 50% of the remaining space after the label
             topOffset = labelHeight + (inputTop - labelHeight) + (input.offsetHeight / 2);
+            micButton.style.top = `${topOffset}px`;
         } else {
-            // If no label, simply center vertically relative to the input
-            topOffset = (formGroupRect.height - micButton.offsetHeight) / 2;
+            // If no label, set top to 50%
+            micButton.style.top = '50%';
         }
 
-        micButton.style.top = `${topOffset}px`;
         micButton.style.transform = 'translateY(-50%)';
+
 
     }
 

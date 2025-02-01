@@ -11,20 +11,28 @@
             width: 300px;
             padding: 15px;
             font-family: Arial, sans-serif;
+            text-align: center;
         }
 
-        #startButton {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
+        #micButton {
+            font-size: 48px;
             cursor: pointer;
+            background: none;
+            border: none;
+            padding: 20px;
+            transition: color 0.3s ease;
         }
 
-        #startButton:hover {
-            background-color: #0056b3;
+        #micButton.enabled {
+            color: #ff0000;
+        }
+
+        #micButton.disabled {
+            color: #666666;
+        }
+
+        #micButton:hover {
+            transform: scale(1.1);
         }
 
         #status {
@@ -54,8 +62,10 @@
 </head>
 
 <body>
-    <button id="startButton">Start Voice Input</button>
-    <div id="status">Click button to start</div>
+    <button id="micButton" title="Toggle Voice Input">
+        <i class="fas fa-microphone"></i>
+    </button>
+    <div id="status">Click microphone to start</div>
     <div id="logContainer"></div>
     <script src="popup.js"></script>
 </body>
