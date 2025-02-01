@@ -20,6 +20,9 @@ chrome.storage.local.onChanged.addListener((changes) => {
     console.log("changes", changes);
     if (changes.isEnabled) {
         updateIcon(changes.isEnabled.newValue);
+        document.querySelectorAll('input[type="text"], input[type="search"], input[type="email"], input[type="tel"], textarea').forEach(input => {
+            addMicIconToInput(input);
+        });
     }
 });
 
@@ -28,35 +31,15 @@ function updateIcon(enabled) {
     const canvas = new OffscreenCanvas(16, 16);
     const ctx = canvas.getContext('2d');
 
-    // Clear canvas
+    // Clear canvas             
     ctx.clearRect(0, 0, 16, 16);
 
-    // Set background transparent
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, 16, 16);
-
-    // Draw microphone shape
-    ctx.fillStyle = enabled ? '#FF0000' : '#FFFFFF';
-    ctx.strokeStyle = enabled ? '#FF0000' : '#FFFFFF';
-
-    // Main mic body
-    ctx.beginPath();
-    ctx.roundRect(6, 2, 4, 8, 2);
-    ctx.fill();
-
-    // Mic stand
-    ctx.beginPath();
-    ctx.moveTo(8, 10);
-    ctx.lineTo(8, 12);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Mic base
-    ctx.beginPath();
-    ctx.moveTo(5, 12);
-    ctx.lineTo(11, 12);
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    if (enabled) {
+        ctx.beginPath();
+        ctx.arc(12, 4, 2, 0, 2 * Math.PI);
+        ctx.fillStyle = '#FF0000';
+        ctx.fill();
+    }
 
     // Get the ImageData and set it as the icon
     const imageData = ctx.getImageData(0, 0, 16, 16);
@@ -68,4 +51,10 @@ function updateIcon(enabled) {
             console.error('Error updating icon:', chrome.runtime.lastError.message);
         }
     });
-} 
+}
+
+// Draw recording circle when enabled
+
+
+
+

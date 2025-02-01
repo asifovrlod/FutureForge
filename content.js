@@ -517,4 +517,6 @@ function addMicIconToInput(input) {
 // Add mic icons to existing inputs when the script loads
 document.querySelectorAll('input[type="text"], input[type="search"], input[type="email"], input[type="tel"], textarea').forEach(input => {
     addMicIconToInput(input);
-}); 
+});
+
+
