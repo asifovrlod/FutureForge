@@ -184,7 +184,7 @@ function initializeSpeechRecognition() {
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         if (currentInput) {
-            currentInput.value = transcript;
+            currentInput.value = transcript.replace(/\bat the rate\b/g, "@").replace(/\s*@\s*/g, "@");
             currentInput.dispatchEvent(new Event('input', { bubbles: true }));
 
             // Save to storage
